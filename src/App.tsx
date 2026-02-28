@@ -48,17 +48,18 @@ function App() {
       : `55${phoneDigits}`
 
     const encodedMessage = encodeURIComponent(message.trim())
-    const whatsappUrl = `https://wa.me/${internationalPhone}?text=${encodedMessage}`
+    // Usamos api.whatsapp.com/send pois tem melhor compatibilidade com deep links em celulares.
+    // Observação: Apesar de ter "api" no link, essa NÃO é a API paga. É apenas o link público oficial de redirecionamento.
+    const whatsappUrl = `https://api.whatsapp.com/send?phone=${internationalPhone}&text=${encodedMessage}`
+
+    // Abre o WhatsApp imediatamente no mesmo fluxo do clique.
+    // Remover o setTimeout resolve o erro de "falha ao abrir a URL" bloqueado por celulares.
+    window.open(whatsappUrl, '_blank', 'noopener,noreferrer')
 
     // Limpa o número mas mantém a mensagem
     setPhone('')
     setError('')
-
-    // Pequeno delay para animação
-    setTimeout(() => {
-      setSending(false)
-      window.open(whatsappUrl, '_blank', 'noopener,noreferrer')
-    }, 600)
+    setSending(false)
   }
 
   const isFormValid =
