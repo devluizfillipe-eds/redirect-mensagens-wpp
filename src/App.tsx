@@ -171,8 +171,8 @@ function App() {
         {/* Footer */}
         <p className="footer-text">
           Você será redirecionado para o WhatsApp após clicar
-          desenvolvido por Luiz Fillipe
         </p>
+        <p>Desenvolvido por Luiz Fillipe</p>
       </div>
     </div>
   )
