@@ -172,7 +172,6 @@ function App() {
         <p className="footer-text">
           Você será redirecionado para o WhatsApp após clicar
         </p>
-        <p>Desenvolvido por Luiz Fillipe</p>
       </div>
     </div>
   )
