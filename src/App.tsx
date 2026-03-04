@@ -5,12 +5,21 @@ function formatPhoneNumber(value: string): string {
   // Remove tudo que não for dígito
   const digits = value.replace(/\D/g, "");
 
-  // Formata de acordo com a quantidade de dígitos
-  if (digits.length <= 2) return digits;
-  if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
-  if (digits.length <= 10)
-    return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
-  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7, 11)}`;
+  // Agora esperamos apenas o número local (sem DDD).
+  // Formata como 9xxxx-xxxx (quando 9 dígitos) ou xxxx-xxxx (quando 8 dígitos).
+  if (digits.length <= 5) return digits;
+  // Para 6..9 dígitos: separa os últimos 4 dígitos com um hífen
+  if (digits.length <= 9) {
+    const part1 = digits.slice(0, digits.length - 4);
+    const part2 = digits.slice(digits.length - 4);
+    return `${part1}-${part2}`;
+  }
+
+  // Limita a entrada a 9 dígitos (formato local sem DDD). Se digitar mais, corta.
+  const trimmed = digits.slice(0, 9);
+  return `${trimmed.slice(0, trimmed.length - 4)}-${trimmed.slice(
+    trimmed.length - 4,
+  )}`;
 }
 
 function App() {
@@ -30,8 +39,11 @@ function App() {
 
     const phoneDigits = phone.replace(/\D/g, "");
 
-    if (phoneDigits.length < 10) {
-      setError("Por favor, insira um número de telefone válido.");
+    // Esperamos que o usuário informe apenas o número local (8 ou 9 dígitos).
+    if (phoneDigits.length < 8 || phoneDigits.length > 9) {
+      setError(
+        "Por favor, insira o número sem DDD (8 ou 9 dígitos). O DDD será fixo como 31.",
+      );
       return;
     }
 
@@ -42,10 +54,10 @@ function App() {
 
     setSending(true);
 
-    // Monta o número no formato internacional (Brasil +55)
-    const internationalPhone = phoneDigits.startsWith("5531")
-      ? phoneDigits
-      : `5531${phoneDigits}`;
+    // Monta o número no formato certo (Brasil +55) com DDD fixo 31.
+    // phoneDigits são apenas os dígitos locais (ex.: 987654321)
+    const ddd = "31";
+    const internationalPhone = `55${ddd}${phoneDigits}`;
 
     const encodedMessage = encodeURIComponent(message.trim());
     // Usamos api.whatsapp.com/send pois tem melhor compatibilidade com deep links em celulares.
@@ -62,8 +74,10 @@ function App() {
     setSending(false);
   };
 
+  const localPhoneLength = phone.replace(/\D/g, "").length;
   const isFormValid =
-    phone.replace(/\D/g, "").length >= 10 && message.trim().length > 0;
+    (localPhoneLength === 8 || localPhoneLength === 9) &&
+    message.trim().length > 0;
 
   return (
     <div className="app-container">
@@ -111,15 +125,15 @@ function App() {
               Número de Telefone
             </label>
             <div className="input-wrapper">
-              <span className="input-prefix">🇧🇷 +55</span>
+              <span className="input-prefix">🇧🇷 +55 (31)</span>
               <input
                 id="phone"
                 type="tel"
                 value={phone}
                 onChange={handlePhoneChange}
-                placeholder="99999-9999"
+                placeholder="Ex.: 98765-4321 (sem DDD)"
                 className="input-field input-with-prefix"
-                maxLength={15}
+                maxLength={11}
                 autoComplete="tel"
               />
             </div>
